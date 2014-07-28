@@ -246,7 +246,7 @@ if __name__ == '__main__':
     wi_vals = ([1] * 200) + [0] * (SIZE - 200)
     random.shuffle(wi_vals)
     wi = zip(snp_name, wi_vals)
-    
+
     with(stats["pharma_weights"]):
         Ewi = pharma_get_weights(wi, key_pair)
 
@@ -264,6 +264,14 @@ if __name__ == '__main__':
     print result
 
     stats.print_stats()
+
+    ## Back of the envelope estimates
+    (G, g, q) = get_group()
+    ptlen = _C.EC_POINT_point2oct(G, g, _C.POINT_CONVERSION_COMPRESSED, _FFI.NULL, 0, _FFI.NULL);
+    
+    # Estimate size of weights
+    MB = ptlen * 2 * SIZE
+    print "Weights size: %.3f MB (%i weights)" % (float(MB) / (1024 * 1024), SIZE)
 
 
     unittest.main()
