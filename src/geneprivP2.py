@@ -192,4 +192,44 @@ class TestProtocol1(unittest.TestCase):
         assert x == 16
 
 if __name__ == '__main__':
+    from StatKeeper import StatKeeper
+    import random
+    
+    ## Speed tests
+    stats = StatKeeper()
+
+    SIZE = 10000
+    snp_name = range(SIZE)
+    snp_vals = [0,1] * (SIZE / 2)
+    snps = zip(snp_name, snp_vals)
+
+    wi_vals = ([1] * 200) + [0] * (SIZE - 200)
+    random.shuffle(wi_vals)
+    wi = zip(snp_name, wi_vals)
+
+    with(stats["user_key"]):
+        pk, table = user_get_key()
+        (pub, priv) = pk
+
+    # Sequencer encodes snps
+    with(stats["sequencer_encrypt"]):
+        esnips = sequencer_encrypt(snps, pub)
+
+    # Split the weights
+    with(stats["pharma_split"]):
+        L1, L2 = pharma_split_weights(wi)
+
+    # Authroties aggregate
+    with(stats["authority_aggregate"]):
+        (A1, B1) = authority_aggregate(pub, L1, esnips)
+    with(stats["authority_aggregate"]):
+        (A2, B2) = authority_aggregate(pub, L2, esnips)
+
+    # User combines and decrypts
+    with(stats["combine_decrypt"]):
+        x = user_combine_decrypt(A1, B1, A2, B2, pk, table)
+
+    print x
+    stats.print_stats()
+
     unittest.main()

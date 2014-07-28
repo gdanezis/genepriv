@@ -173,32 +173,11 @@ def pharma_decrypt_result(eresult, pk):
     return D
 
 # ---------------------------
-# Protocol 2 (Secret sharing)
-
-## User:
-#  - Generate PK
-#  - Generate public decryption table
-
-## Certiied sequencer:
-#  - Ecnrypt SNP values using the PK
-
-## Pharma:
-#  - Split the wi into 2 shares
-#  - Distriute to authorities
-
-## Authorities:
-#  - Multiply shares with encrypted SNPs
-
-## Smart Card:
-#  - Add result
-#  - Decrypt results
-
-## ---------------------
-## Unit tests live here
-
+import random
 import unittest
 
 class TestProtocol1(unittest.TestCase):
+
     def test_group(self):
         (G, g, q) = get_group()
 
@@ -248,5 +227,43 @@ class TestProtocol1(unittest.TestCase):
         assert wi == P
 
 if __name__ == '__main__':
-    unittest.main()
+    from StatKeeper import StatKeeper
 
+    ## Speed tests
+    stats = StatKeeper()
+
+    ## Generate the keys for all
+    with(stats["pharma_key"]):
+        key_pair = pharma_get_key()
+        (pub, priv) = key_pair
+
+    ## Encode the weights on the pharma side
+    SIZE = 10000
+    snp_name = range(SIZE)
+    snp_vals = [0,1] * (SIZE / 2)
+    snps = zip(snp_name, snp_vals)
+
+    wi_vals = ([1] * 200) + [0] * (SIZE - 200)
+    random.shuffle(wi_vals)
+    wi = zip(snp_name, wi_vals)
+    
+    with(stats["pharma_weights"]):
+        Ewi = pharma_get_weights(wi, key_pair)
+
+    # Perform the operation on the smartcard
+    with(stats["user_results"]):
+        res = user_get_result(snps, None, Ewi, pub)
+
+    # Decode the element at the pharma
+    with(stats["pharma_decrypt"]):
+        elem = pharma_decrypt_result(res, key_pair)
+
+    T1 = pk_get_table()
+    
+    result = table_lookup(elem, T1)
+    print result
+
+    stats.print_stats()
+
+
+    unittest.main()

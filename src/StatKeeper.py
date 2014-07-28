@@ -84,5 +84,5 @@ class StatKeeper:
             cnt, tot = self.log[k]
             xtot = max(1000*tot - cnt*overhead, 0.0)
             xave = max(1000*tot/cnt - overhead, 0.0)
-            print "%20s\t%8d\t%8.6f\t%8.6f" % (k, cnt, xtot, xave)
+            print "%20s\t%8d\t% 8.6f\t% 8.6f" % (k, cnt, xtot, xave)
         print "\t\t\t\t\t\t(All times in miliseconds)"
