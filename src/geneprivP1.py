@@ -139,9 +139,20 @@ def user_get_result(esnips, aes_key, eweights, pub):
     for (snpi, snp), (snpj, Ai, Bi) in zip(esnips, eweights):
         assert snpi == snpj
 
-        si = assign_number(snp)
-        A_acc, B_acc = pk_accumulate(group, A_acc, B_acc, Ai, Bi, si, temp)
-        _C.BN_clear_free(si)
+        ## Optimization: if 0 then continue
+        if snp == 0:
+            continue
+
+        ## Optimization: if 1 then just add
+        elif snp == 1:
+            _C.EC_POINT_add(G, A_acc, A_acc, Ai, _FFI.NULL)
+            _C.EC_POINT_add(G, B_acc, B_acc, Bi, _FFI.NULL)
+
+        ## All other cases
+        else:
+            si = assign_number(snp)
+            A_acc, B_acc = pk_accumulate(group, A_acc, B_acc, Ai, Bi, si, temp)
+            _C.BN_clear_free(si)
 
     # Rerandomize
     m = assign_number(0)
