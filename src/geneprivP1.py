@@ -282,6 +282,7 @@ if __name__ == '__main__':
     
     # Estimate size of weights
     MB = ptlen * 2 * SIZE
+    print "Point length %s bytes" % ptlen
     print "Weights size: %.3f MB (%i weights)" % (float(MB) / (1024 * 1024), SIZE)
 
 
